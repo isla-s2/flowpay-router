@@ -1,0 +1,24 @@
+{
+  "name": "flowpay-router",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/isla-s2/flowpay-router#readme",
+  "bugs": {
+    "url": "https://github.com/isla-s2/flowpay-router/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/isla-s2/flowpay-router.git"
+  },
+  "license": "ISC",
+  "author": "Isla Rotta",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "mysql": "^2.18.1"
+  }
+}
