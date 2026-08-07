@@ -19,7 +19,7 @@ db.sequelize.sync({ force: true }).then(() => {
 });
 
 app.get('/', (req, res) => {
-    res.json({ message: "Router FlowPay!!!!!!!!" });
+    res.json({ message: "Router FlowPay" });
 });
 
 import rt from "./src/routes.js";
