@@ -1,0 +1,40 @@
+services:
+  app:
+    depends_on:
+      mysqldb:
+        condition: service_healthy
+        restart: true
+    build: ./app
+    restart: unless-stopped
+    env_file: ./.env
+    volumes:
+      - ./app:/app
+      - /app/node_modules
+    ports:
+      - $NODE_LOCAL_PORT:$NODE_DOCKER_PORT
+    environment:
+      - DB_HOST=mysqldb
+      - DB_USER=$MYSQLDB_USER
+      - DB_PASSWORD=$MYSQLDB_ROOT_PASSWORD
+      - DB_NAME=$MYSQLDB_DATABASE
+      - DB_PORT=$MYSQLDB_DOCKER_PORT
+    stdin_open: true
+    tty: true
+  mysqldb:
+    image: mysql:26.7
+    restart: unless-stopped
+    env_file: ./.env
+    environment:
+      - MYSQL_ROOT_PASSWORD=$MYSQLDB_ROOT_PASSWORD
+      - MYSQL_DATABASE=$MYSQLDB_DATABASE
+    healthcheck:
+        test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+        timeout: 20s
+        retries: 10
+    ports:
+      - $MYSQLDB_LOCAL_PORT:$MYSQLDB_DOCKER_PORT
+    #volumes:
+    #  - db:/var/lib/mysql
+
+#volumes: 
+#  db:

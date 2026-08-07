@@ -19,13 +19,13 @@ db.sequelize.sync({ force: true }).then(() => {
 });
 
 app.get('/', (req, res) => {
-    res.json({ message: "Router FlowPay" });
+    res.json({ message: "Router FlowPay!!!!!!!!" });
 });
 
 import rt from "./src/routes.js";
 rt(app);
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.NODE_DOCKER_PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server is listening at http://localhost:${PORT}`);
 });
