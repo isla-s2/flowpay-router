@@ -11,7 +11,8 @@ export let create = (req, res) => {
 
     const ticket = {
         ticket_ref: req.body.ticket_ref,
-        subject: req.body.subject
+        subject: req.body.subject,
+        cur_status: req.body.cur_status
     }
 
     Ticket.create(ticket)
