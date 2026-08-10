@@ -9,6 +9,10 @@ const sequelize = new Sequelize(
         host:dbConfig.HOST,
         dialect: dbConfig.dialect,
         port: dbConfig.port,
+        
+        define: {
+          freezeTableName: true,
+        },
 
         pool: {
             max: dbConfig.pool.max,
