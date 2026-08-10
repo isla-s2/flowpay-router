@@ -1,8 +1,8 @@
 INSERT INTO team (`name`)
 VALUES
+('Outros Assuntos'),
 ('Cartões'),
-('Empréstimos'),
-('Outros Assuntos');
+('Empréstimos');
 
 INSERT INTO agent (`occupied_slots`, `team_id`)
 VALUES

@@ -4,20 +4,50 @@ const Op = db.Sequelize.Op;
 
 //creates a ticket
 export let create = (req, res) => {
-    if (!req.body.ticket_ref) {
+    if (!req.body.ticket_ref || !req.body.subject) {
         res.status(400).send({message: "Conteúdo não pode estar vazio!"});
         return;
     }
 
-    const ticket = {
-        ticket_ref: req.body.ticket_ref,
-        subject: req.body.subject,
-        cur_status: req.body.cur_status
+    let team_assigned = 1;
+    switch (true){
+      case /cart[oõ]es/gi.test(req.body.subject):
+        team_assigned = 2;
+        break;
+      case /empr[eé]stimos/gi.test(req.body.subject):
+        team_assigned = 3;
+        break;
     }
+    
+    Ticket.findAndCountAll({
+      where: {
+        team_id: team_assigned,
+        cur_status: 'in queue',
+      }
+    }).then(found => {
+      console.log(found.count);
+      let status_assigned = 'rejected';
+      let res_message = 'erro';
+      if (found.count <3) {
+        status_assigned = 'in queue';
+        res_message = 'Sucesso!';
+      }else{
+        res_message = 'Tente novamente mais tarde!';
+      }
 
-    Ticket.create(ticket)
-        .then(data => {res.send(data)})
-        .catch(err => {res.status(500).send({message: err || "Algum erro ocorreu na criação do ticket."})});
+      const ticket = {
+          ticket_ref: req.body.ticket_ref,
+          subject: req.body.subject,
+          team_id: team_assigned,
+          cur_status: status_assigned
+      }
+
+      Ticket.create(ticket)
+          .then(data => {res.send({data: data, message: res_message})}) //chamar função de designação aq?
+          .catch(err => {res.status(500).send({message: err || "Algum erro ocorreu na criação do ticket."})});
+
+    })
+    .catch(err => {res.status(500).send({message: err || "Algum erro ocorreu na verificação."})});
 };
 
 //retrieves all tickets

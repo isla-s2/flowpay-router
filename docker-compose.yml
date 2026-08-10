@@ -5,7 +5,7 @@ services:
         condition: service_healthy
         restart: true
     build: ./app
-    image: flowpay-router:0.4
+    image: flowpay-router:0.5
     restart: unless-stopped
     env_file: ./.env
     volumes:
