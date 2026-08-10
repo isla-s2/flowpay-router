@@ -14,9 +14,9 @@ db.sequelize.sync()
     .then(() => {console.log("Synced database");})
     .catch((err) => {console.log("Failed to sync database: " + err);});
 
-db.sequelize.sync({ force: true }).then(() => {
-  console.log("Drop and re-sync db.");
-});
+//db.sequelize.sync({ force: true }).then(() => {
+//  console.log("Drop and re-sync db.");
+//});
 
 app.get('/', (req, res) => {
     res.json({ message: "Router FlowPay" });

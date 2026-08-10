@@ -4,8 +4,8 @@ export default (sequelize, Sequelize) => {
         subject: {type: Sequelize.STRING, allowNull: false},
         cur_status: {type: Sequelize.STRING, allowNull: false, validate: {isIn: [['in queue', 'rejected', 'assigned', 'closed']]}},
         moment: {
-            type: 'TIMESTAMP',
-            defaultValue: sequelize.literal('CURRENT_TIMESTAMP'),
+            type: 'TIMESTAMP(6)',
+            defaultValue: sequelize.literal('CURRENT_TIMESTAMP(6)'),
             allowNull: false
         }
     },
