@@ -11,15 +11,15 @@ export let create = (req, res) => {
 
     let team_assigned = 1;
     switch (true){
-      case /cart[oõ]es/gi.test(req.body.subject):
+      case /cart[aãoõ](o|es)/gi.test(req.body.subject):
         team_assigned = 2;
         break;
-      case /empr[eé]stimos/gi.test(req.body.subject):
+      case /empr[eé]stimos?/gi.test(req.body.subject):
         team_assigned = 3;
         break;
     }
     
-    Ticket.findAndCountAll({
+    return Ticket.findAndCountAll({
       where: {
         team_id: team_assigned,
         cur_status: 'in queue',
@@ -27,12 +27,15 @@ export let create = (req, res) => {
     }).then(found => {
       console.log(found.count);
       let status_assigned = 'rejected';
-      let res_message = 'erro';
+      let res_message = 'Erro';
+      let res_status = '500';
       if (found.count <3) {
         status_assigned = 'in queue';
         res_message = 'Sucesso!';
+        res_status = 201;
       }else{
         res_message = 'Tente novamente mais tarde!';
+        res_status = 503;
       }
 
       const ticket = {
@@ -43,11 +46,11 @@ export let create = (req, res) => {
       }
 
       Ticket.create(ticket)
-          .then(data => {res.send({data: data, message: res_message})}) //chamar função de designação aq?
+          .then(data => {res.status(res_status).send({data: data, message: res_message})}) //chamar função de designação aq?
           .catch(err => {res.status(500).send({message: err || "Algum erro ocorreu na criação do ticket."})});
 
     })
-    .catch(err => {res.status(500).send({message: err || "Algum erro ocorreu na verificação."})});
+    .catch(err => {res.status(500).send({message: err || "Algum erro ocorreu na verificação de dados."})});
 };
 
 //retrieves all tickets
