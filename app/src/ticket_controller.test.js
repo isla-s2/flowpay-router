@@ -11,20 +11,15 @@ describe("Criação de tickets", () => {
         jest.clearAllMocks();
     });
 
-    //Ticket.create = jest.fn().mockResolvedValue(Ticket);
-    
-    //jest.unstable_mockModule('./models/index.js', () => ({
-    //  ticket: mockTicket
-    //}))
-
-    //const tickets = import("./ticket_controller.js");
-    //const db = import("./models/index.js");
-
-    it("cria novo ticket, envia pra fila e retorna mensagem de sucesso", async ()=>{
+    it.each([
+        [12345, "Cartões"],
+        [67890, "Empréstimos"],
+        [24680, "Outros Assuntos"],
+    ])("cria novo ticket, envia pra fila e retorna mensagem de sucesso", async (ticket_ref, subject)=>{
         const req = {
             body: {
-                ticket_ref: 123456,
-                subject: "Cartões"
+                ticket_ref: ticket_ref,
+                subject: subject
             }
         }
         const res = {
@@ -54,11 +49,15 @@ describe("Criação de tickets", () => {
         }));
     });
 
-    it("cria novo ticket, rejeita e retorna mensagem de rejeição", async ()=>{
+    it.each([
+        [12345, "Cartões"],
+        [67890, "Empréstimos"],
+        [24680, "Outros Assuntos"],
+    ])("cria novo ticket, rejeita e retorna mensagem de rejeição", async (ticket_ref, subject)=>{
         const req = {
             body: {
-                ticket_ref: 123456,
-                subject: "Cartões"
+                ticket_ref: ticket_ref,
+                subject: subject
             }
         }
         const res = {
@@ -88,10 +87,15 @@ describe("Criação de tickets", () => {
         }));
     });
 
-    it("retorna erro 400 e não cria o ticket caso algum campo esteja vazio", async ()=>{
+    it.each([
+        [null, "Cartões"],
+        [67890, null],
+        [24680, ""],
+    ])("retorna erro 400 e não cria o ticket caso algum campo esteja vazio", async (ticket_ref, subject)=>{
         const req = {
             body: {
-                ticket_ref: 123456
+                ticket_ref: ticket_ref,
+                subject: subject
             }
         }
         const res = {
@@ -115,11 +119,15 @@ describe("Criação de tickets", () => {
         }));
     });
 
-    it("ticket_ref e subject tem os mesmos valores que os enviados", async ()=>{
+    it.each([
+        [12345, "Cartões"],
+        [67890, "Empréstimos"],
+        [24680, "Outros Assuntos"],
+    ])("ticket_ref e subject tem os mesmos valores que os enviados", async (ticket_ref, subject)=>{
         const req = {
             body: {
-                ticket_ref: 123456,
-                subject: "Cartões"
+                ticket_ref: ticket_ref,
+                subject: subject
             }
         }
         const res = {
@@ -137,16 +145,27 @@ describe("Criação de tickets", () => {
 
         expect(Ticket.create).toHaveBeenCalledTimes(1);
         expect(Ticket.create).toHaveBeenCalledWith(expect.objectContaining({
-            ticket_ref: 123456,
-            subject: "Cartões"
+            ticket_ref: ticket_ref,
+            subject: subject
         }));
     });
 
-    it("designa o team_id correto", async ()=>{
+    it.each([
+        [12345, "Cartões"],
+        [12345, "cartoes"],
+        [12345, "Cartão"],
+        [12345, "cartao"],
+        [67890, "Empréstimos"],
+        [67890, "emprestimos"],
+        [67890, "Empréstimo"],
+        [67890, "emprestimo"],
+        [24680, "Outros Assuntos"],
+        [24680, "abcdefg"],
+    ])("designa o team_id correto", async (ticket_ref, subject)=>{
         const req = {
             body: {
-                ticket_ref: 123456,
-                subject: "Cartões"
+                ticket_ref: ticket_ref,
+                subject: subject
             }
         }
         const res = {
@@ -164,7 +183,7 @@ describe("Criação de tickets", () => {
 
         expect(Ticket.create).toHaveBeenCalledTimes(1);
 
-        expected_id = 1;
+        var expected_id = 1;
         switch (true){
         case /cart[aãoõ](o|es)/gi.test(req.body.subject):
             expected_id = 2;
