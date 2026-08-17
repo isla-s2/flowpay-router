@@ -48,7 +48,7 @@ describe ("Designação de tickets aos atendentes", () => {
         Ticket.findAll.mockImplementation( async () => {
             return await Promise.resolve([]);
         }).mockImplementationOnce( async () => {
-            ticket = await Promise.resolve([{ticket_ref: 12345, subject: "Outros Assuntos", team_id: 1, cur_status: "in queue", set: jest.fn(), save: jest.fn()}]);
+            var ticket = await Promise.resolve([{ticket_ref: 12345, subject: "Outros Assuntos", team_id: 1, cur_status: "in queue", set: jest.fn(), save: jest.fn()}]);
             ticket[0].set.mockImplementation(function (added) {
                 Object.assign(this, added);
             });
@@ -56,7 +56,7 @@ describe ("Designação de tickets aos atendentes", () => {
             ticket_arr.push(ticket[0]);
             return ticket;
         }).mockImplementationOnce( async () => {
-            ticket = await Promise.resolve([{ticket_ref: 67890, subject: "Cartões", team_id: 2, cur_status: "in queue", set: jest.fn(), save: jest.fn()}]);
+            var ticket = await Promise.resolve([{ticket_ref: 67890, subject: "Cartões", team_id: 2, cur_status: "in queue", set: jest.fn(), save: jest.fn()}]);
             ticket[0].set.mockImplementation(function (added) {
                 Object.assign(this, added);
             });
@@ -64,7 +64,7 @@ describe ("Designação de tickets aos atendentes", () => {
             ticket_arr.push(ticket[0]);
             return ticket;
         }).mockImplementationOnce( async () => {
-            ticket = await Promise.resolve([{ticket_ref: 24680, subject: "Empréstimos", team_id: 3, cur_status: "in queue", set: jest.fn(), save: jest.fn()}]);
+            var ticket = await Promise.resolve([{ticket_ref: 24680, subject: "Empréstimos", team_id: 3, cur_status: "in queue", set: jest.fn(), save: jest.fn()}]);
             ticket[0].set.mockImplementation(function (added) {
                 Object.assign(this, added);
             });
