@@ -24,7 +24,7 @@ describe ("Designação de tickets aos atendentes", () => {
 
         Ticket.findAll.mockResolvedValue();
 
-        catch_res = await designate();
+        var catch_res = await designate();
         console.log(catch_res);
 
         expect(Agent.findOne).toHaveBeenCalled();
@@ -79,7 +79,7 @@ describe ("Designação de tickets aos atendentes", () => {
 
         db.sequelize.transaction.mockImplementation();
 
-        catch_res = await designate();
+        var catch_res = await designate();
         console.log(catch_res);
         
         expect(Ticket.findAll).toHaveBeenCalledTimes(3);
