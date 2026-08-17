@@ -84,7 +84,7 @@ describe ("Designação de tickets aos atendentes", () => {
         
         expect(Ticket.findAll).toHaveBeenCalledTimes(3);
         expect(db.sequelize.transaction).toHaveBeenCalledTimes(3);
-        for (t in ticket_arr){
+        for (let t in ticket_arr){
             expect(ticket[0].set).toHaveBeenCalledTimes(1);
         }
         expect(catch_res).toEqual(expect.arrayContaining([
