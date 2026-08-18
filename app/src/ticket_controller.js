@@ -98,8 +98,8 @@ export let close = async (req, res) => {
             .then(data => {
               res.status(200).send({data: data, message: "Atendimento fechado!"})
               designate();
+              return_arr.push(ticket, agent);
             });
-            return_arr.push(ticket, agent);
           }catch (err) {
             res.status(500).send({
               message: err || "Algum erro ocorreu ao atualizar os dados."

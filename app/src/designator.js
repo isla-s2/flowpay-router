@@ -13,7 +13,7 @@ export default async() => {
             //console.log("i: "+i);
             try{
                 var agent = await Agent.findOne({where: {team_id: i, occupied_slots: {[Op.between]: [0, 2]}}});
-                if (agent === null) {
+                if (agent === null || agent === undefined) {
                     part_res[i-1] = null;
                     console.log('Agente não encontrado!');
                 } else {
@@ -22,7 +22,7 @@ export default async() => {
 
                     try{
                         var ticket = await Ticket.findAll({where: {team_id: i, cur_status: "in queue"}, order: [['moment', 'ASC']], limit: 1});
-                        if (ticket.length < 1 ){
+                        if (ticket.length < 1  || agent === undefined){
                             console.log('Ticket não encontrado!');
                         }else{
                             run = true;

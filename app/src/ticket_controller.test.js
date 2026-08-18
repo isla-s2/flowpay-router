@@ -236,17 +236,18 @@ describe("Fechamento de tickets", () => {
             send: jest.fn(),
         };
         
-        Ticket.findByPk.mockImplementationOnce( async () => {
-            var ticket = await Promise.resolve({id: 101, ticket_ref: 12345, subject: "Outros Assuntos", team_id: 1, cur_status: "assigned", agent_id:51, set: jest.fn(), save: jest.fn()});
-            //console.log(ticket);
-            ticket.set.mockImplementation(function (added) {
-                Object.assign(this, added);
-            });
-            ticket.save.mockImplementation(() => Promise.resolve());
-            return ticket;
+        var ticket = await Promise.resolve({id: 101, ticket_ref: 12345, subject: "Outros Assuntos", team_id: 1, cur_status: "assigned", agent_id:51, set: jest.fn(), save: jest.fn()});
+        //console.log(ticket);
+        ticket.set.mockImplementation(function (added) {
+            Object.assign(this, added);
         });
+        ticket.save.mockImplementation(() => Promise.resolve());
+
+        Ticket.findByPk.mockImplementationOnce( async () => {return ticket});
         Agent.findByPk.mockResolvedValueOnce({id: 51, occupied_slots: 1, team_id: 1, set: jest.fn(), save: jest.fn()});
         
+        db.sequelize.transaction.mockImplementation(() => Promise.resolve());
+
         let result = await tickets.close(req,res);
         //console.log(result);
 
