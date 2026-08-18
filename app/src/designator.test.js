@@ -22,10 +22,10 @@ describe ("Designação de tickets aos atendentes", () => {
                      .mockResolvedValueOnce(second)
                      .mockResolvedValueOnce(third);
 
-        Ticket.findAll.mockResolvedValue();
+        Ticket.findAll.mockResolvedValue([]);
 
         var catch_res = await designate();
-        console.log(catch_res);
+        //console.log(catch_res);
 
         expect(Agent.findOne).toHaveBeenCalled();
         expect(catch_res).toEqual(expect.arrayContaining([[first?first.id:null, second?second.id:null, third?third.id:null]]));
@@ -36,9 +36,9 @@ describe ("Designação de tickets aos atendentes", () => {
         var ticket_arr = new Array(); 
 
         Agent.findOne.mockResolvedValue(null)
-                     .mockResolvedValueOnce({id: 51, occupied_slots: 0, team_id: 1})
-                     .mockResolvedValueOnce({id: 52, occupied_slots: 0, team_id: 2})
-                     .mockResolvedValueOnce({id: 53, occupied_slots: 0, team_id: 3});
+                     .mockResolvedValueOnce({id: 51, occupied_slots: 0, team_id: 1, set: jest.fn(), save: jest.fn()})
+                     .mockResolvedValueOnce({id: 52, occupied_slots: 0, team_id: 2, set: jest.fn(), save: jest.fn()})
+                     .mockResolvedValueOnce({id: 53, occupied_slots: 0, team_id: 3, set: jest.fn(), save: jest.fn()});
 
         /* Ticket.findAll.mockResolvedValue(null)
                      .mockResolvedValueOnce([{ticket_ref: 12345, subject: "Outros Assuntos", team_id: 1, cur_status: "in queue"}])
@@ -80,7 +80,7 @@ describe ("Designação de tickets aos atendentes", () => {
         db.sequelize.transaction.mockImplementation();
 
         var catch_res = await designate();
-        console.log(catch_res);
+        //console.log(catch_res);
         
         expect(Ticket.findAll).toHaveBeenCalledTimes(3);
         expect(db.sequelize.transaction).toHaveBeenCalledTimes(3);
@@ -91,12 +91,18 @@ describe ("Designação de tickets aos atendentes", () => {
             expect.arrayContaining([expect.objectContaining({
                 agent_id: 51,
                 cur_status: "assigned"
+            }),expect.objectContaining({
+                occupied_slots: 1
             })]), expect.arrayContaining([expect.objectContaining({
                 agent_id: 52,
                 cur_status: "assigned"
+            }),expect.objectContaining({
+                occupied_slots: 1
             })]), expect.arrayContaining([expect.objectContaining({
                 agent_id: 53,
                 cur_status: "assigned"
+            }),expect.objectContaining({
+                occupied_slots: 1
             })]) 
         ]));
     }) 

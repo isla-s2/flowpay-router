@@ -10,38 +10,38 @@ export default async() => {
         run = false;
         let part_res = new Array();
         for (let i=1; i <= 3; i++){
-            console.log("i: "+i);
+            //console.log("i: "+i);
             try{
                 var agent = await Agent.findOne({where: {team_id: i, occupied_slots: {[Op.between]: [0, 2]}}});
-                if (agent === null) {
+                if (agent === null || agent === undefined) {
                     part_res[i-1] = null;
                     console.log('Agente não encontrado!');
                 } else {
-                    console.log(agent);
+                    //console.log(agent);
                     part_res[i-1] = agent.id;
-                    console.log(agent);
 
                     try{
                         var ticket = await Ticket.findAll({where: {team_id: i, cur_status: "in queue"}, order: [['moment', 'ASC']], limit: 1});
-                        if (ticket.length < 1 ){
+                        if (ticket.length < 1  || agent === undefined){
                             console.log('Ticket não encontrado!');
                         }else{
                             run = true;
-                            /* console.log("------------------");
-                            console.log(ticket);
-                            console.log("------------------"); */
-                            ticket[0].set({
-                                agent_id: agent.id,
-                                cur_status: "assigned"
-                            });
-                            agent.occupied_slots += 1;
-                            /* console.log("------------------");
-                            console.log(ticket[0]);
-                            console.log("---*---")
-                            console.log(agent);
-                            console.log("------------------"); */
 
                             try{
+                                /* console.log("------------------");
+                                console.log(ticket);
+                                console.log("------------------"); */
+                                ticket[0].set({
+                                    agent_id: agent.id,
+                                    cur_status: "assigned"
+                                });
+                                agent.occupied_slots += 1;
+                                /* console.log("------------------");
+                                console.log(ticket[0]);
+                                console.log("---*---")
+                                console.log(agent);
+                                console.log("------------------"); */
+                                
                                 const result = await db.sequelize.transaction(async tr => {
                                     await ticket[0].save({transaction: tr});
                                     await agent.save({transaction: tr});
@@ -49,7 +49,7 @@ export default async() => {
                                     return [ticket[0], agent];
                                 });
                                 res.push([ticket[0], agent]);
-                            }catch (err) {console.log(err || "Algum erro ocorreu ao atualizar o ticket.")}
+                            }catch (err) {console.log(err || "Algum erro ocorreu ao atualizar os dados.")}
                         }
                     }catch (err) {console.log(err || "Algum erro ocorreu na verificação de tickets.")}
                 }

@@ -1,9 +1,13 @@
 import db from "./models/index.js";
 const Ticket = db.ticket;
+const Agent = db.agent;
 const Op = db.Sequelize.Op;
 
-//creates a ticket
+import designate from './designator.js';
+
+//cria um ticket
 export let create = (req, res) => {
+    designate();
     if (!req.body.ticket_ref || !req.body.subject) {
         res.status(400).send({message: "Conteúdo não pode estar vazio!"});
         return;
@@ -25,7 +29,7 @@ export let create = (req, res) => {
         cur_status: 'in queue',
       }
     }).then(found => {
-      console.log(found.count);
+      //console.log(found.count);
       let status_assigned = 'rejected';
       let res_message = 'Erro';
       let res_status = '500';
@@ -46,11 +50,77 @@ export let create = (req, res) => {
       }
 
       Ticket.create(ticket)
-          .then(data => {res.status(res_status).send({data: data, message: res_message})}) //chamar função de designação aq?
+          .then(data => {
+            res.status(res_status).send({data: data, message: res_message})
+            designate();
+          })
           .catch(err => {res.status(500).send({message: err || "Algum erro ocorreu na criação do ticket."})});
 
     })
     .catch(err => {res.status(500).send({message: err || "Algum erro ocorreu na verificação de dados."})});
+};
+
+//encerra o atendimento
+export let close = async (req, res) => {
+  const id = req.params.id;
+  let return_arr = new Array();
+  try{
+    let ticket = await Ticket.findByPk(id);
+    if (ticket.cur_status == "assigned"){
+      try{
+        let agent = await Agent.findByPk(ticket.agent_id)
+          try{
+            /* console.log("------------------");
+            console.log(ticket);
+            console.log("---*---")
+            console.log(agent);
+            console.log("------------------"); */
+
+            ticket.set({
+              cur_status: "closed"
+            });
+            agent.occupied_slots -= 1;
+            
+            /* console.log("------------------");
+            console.log(ticket);
+            console.log("---*---")
+            console.log(agent);
+            console.log("------------------"); */
+
+            const result = await db.sequelize.transaction(async tr => {
+              await ticket.save({transaction: tr});
+              //console.log("ticket ok");
+              await agent.save({transaction: tr});
+              //console.log("agent ok");
+              
+              return ticket;
+            })
+            .then(data => {
+              res.status(200).send({data: data, message: "Atendimento fechado!"})
+              designate();
+              return_arr.push(ticket, agent);
+            });
+          }catch (err) {
+            res.status(500).send({
+              message: err || "Algum erro ocorreu ao atualizar os dados."
+            });
+          }
+      }catch (err) {
+        res.status(500).send({
+          message: "Erro tentando encontrar atendente com id=" + ticket.id
+        });
+      }
+    }else{
+      res.status(400).send({
+          message: "Ticket já fechado!"
+        });
+    }
+  }catch (err) {
+    res.status(500).send({
+      message: "Erro tentando encontrar ticket com id=" + id
+    });
+  }; 
+  return return_arr;
 };
 
 //retrieves all tickets
