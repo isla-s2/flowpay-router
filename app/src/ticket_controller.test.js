@@ -3,6 +3,7 @@ import {expect, jest} from '@jest/globals';
 import * as tickets from "./ticket_controller.js";
 import db from "./models/index.js";
 const Ticket = db.ticket;
+const Agent = db.agent;
 
 jest.mock('./models/index.js');
 
@@ -197,4 +198,68 @@ describe("Criação de tickets", () => {
             team_id: expected_id
         }));
     });
+});
+
+describe("Fechamento de tickets", () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it("procura o ticket a ser fechado pela PK e seu agente", async () => {
+        const req = {
+            params: {
+                id: 101
+            }
+        }
+        const res = {
+            status: jest.fn().mockReturnThis(),
+            send: jest.fn(),
+        };
+        
+        Ticket.findByPk.mockResolvedValueOnce({id: 101, ticket_ref: 12345, subject: "Outros Assuntos", team_id: 1, cur_status: "assigned", agent_id:51});
+        Agent.findByPk.mockResolvedValueOnce({id: 51, occupied_slots: 1, team_id: 1});
+
+        let result = await tickets.close(req,res);
+        //console.log(result);
+
+        expect(Ticket.findByPk).toHaveBeenCalledTimes(2);
+    });
+
+    it("atualiza o ticket e o atendente", async () => {
+        const req = {
+            params: {
+                id: 101
+            }
+        }
+        const res = {
+            status: jest.fn().mockReturnThis(),
+            send: jest.fn(),
+        };
+        
+        Ticket.findByPk.mockImplementationOnce( async () => {
+            var ticket = await Promise.resolve({id: 101, ticket_ref: 12345, subject: "Outros Assuntos", team_id: 1, cur_status: "assigned", agent_id:51, set: jest.fn(), save: jest.fn()});
+            //console.log(ticket);
+            ticket.set.mockImplementation(function (added) {
+                Object.assign(this, added);
+            });
+            ticket.save.mockImplementation(() => Promise.resolve());
+            return ticket;
+        });
+        Agent.findByPk.mockResolvedValueOnce({id: 51, occupied_slots: 1, team_id: 1, set: jest.fn(), save: jest.fn()});
+        
+        let result = await tickets.close(req,res);
+        //console.log(result);
+
+        expect(db.sequelize.transaction).toHaveBeenCalledTimes(1);
+        
+        expect(ticket.set).toHaveBeenCalledTimes(1);
+            
+        expect(result).toEqual(expect.arrayContaining([
+            expect.objectContaining({
+                cur_status: "closed"
+            }),expect.objectContaining({
+                occupied_slots: 0
+            })
+        ]));
+    })
 });
