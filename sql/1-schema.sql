@@ -33,6 +33,7 @@ DROP TABLE IF EXISTS `agent`;
 CREATE TABLE `agent` (
   `id` int NOT NULL AUTO_INCREMENT,
   `occupied_slots` int NOT NULL,
+  `version` int NOT NULL DEFAULT 0,
   `team_id` int NOT NULL,
   PRIMARY KEY (`id`),
   KEY `team_id` (`team_id`),
@@ -59,6 +60,7 @@ DROP TABLE IF EXISTS `team`;
 CREATE TABLE `team` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
+  `version` int NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -85,6 +87,7 @@ CREATE TABLE `ticket` (
   `subject` varchar(255) NOT NULL,
   `cur_status` varchar(255) NOT NULL,
   `moment` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  `version` int NOT NULL DEFAULT 0,
   `team_id` int DEFAULT NULL,
   `agent_id` int DEFAULT NULL,
   PRIMARY KEY (`id`),

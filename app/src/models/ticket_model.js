@@ -9,7 +9,7 @@ export default (sequelize, Sequelize) => {
             allowNull: false
         }
     },
-    {timestamps: false,}
+    {timestamps: false, version: true}
     );
 
     return Ticket;
