@@ -103,7 +103,7 @@ describe("Criação de Tickets", () => {
         expect(confirm.status).toBe(200);
         expect(confirm.body).toEqual(expect.objectContaining({"ticket_ref": 24680, "cur_status": "rejected"}));
         
-    });
+    })
 });
 
 describe("Designação de Tickets", () => {
@@ -178,6 +178,27 @@ describe("Designação de Tickets", () => {
         
         let confirm_ag = await supertest(app).get(`/api/agent/4`);
         expect(confirm_ag.body).toEqual(expect.objectContaining({"occupied_slots": 3}));
+    });
+
+    it("Transaction não atualiza nada em caso de erro em uma das partes", async () => {
+        let ticket = {
+            ticket_ref: 201,
+            subject: "Cartões",
+            team_id: 2,
+            cur_status: "in queue"
+        }
+        let created_tk = await Ticket.create(ticket);
+            /* .then(data => {console.log({data: data, message: "ticket criado"})})
+            .catch(console.log({message:  "Algum erro ocorreu na criação do ticket."})); */
+        console.log(created_tk);
+
+        let spyFind = jest.spyOn(Agent, 'findOne').mockResolvedValue({id: 4, occupied_slots: 0, team_id: 1, set: jest.fn(), save: jest.fn().mockRejectedValue(new Error('Erro save'))});
+        
+        await designate.default();
+
+        let confirm_tk = await supertest(app).get(`/api/ticket/${created_tk.id}`);
+        expect(confirm_tk.status).toBe(200);
+        expect(confirm_tk.body).toEqual(expect.objectContaining({"cur_status": "in queue", "agent_id": null}));
     })
 });
 
@@ -285,7 +306,7 @@ describe("Fechamento de Tickets", () => {
         let created_tk = await Ticket.create(ticket);
         await Agent.update({ occupied_slots: 1 },{where: {id: 4}});
         
-        let spyCreate = jest.spyOn(db.sequelize, 'transaction').mockRejectedValue("Algum erro ocorreu ao atualizar os dados.");
+        let spyTransaction = jest.spyOn(db.sequelize, 'transaction').mockRejectedValue("Algum erro ocorreu ao atualizar os dados.");
 
         let response = await supertest(app).patch(`/api/ticket/close/${created_tk.id}`);
         console.log(response.body);
@@ -293,5 +314,32 @@ describe("Fechamento de Tickets", () => {
         expect(response.status).toBe(500);
         expect(response.body).toEqual({"message": "Algum erro ocorreu ao atualizar os dados."});
         //expect(designate.default).toHaveBeenCalledTimes(2);
+    });
+
+    it("Transaction não atualiza nada em caso de erro em uma das partes", async () => {
+        let ticket = {
+            ticket_ref: 201,
+            subject: "Cartões",
+            team_id: 2, 
+            agent_id: 4,
+            cur_status: "assigned"
+        }
+        let created_tk = await Ticket.create(ticket);
+        await Agent.update({ occupied_slots: 0 },{where: {id: 4}});
+        
+        let spyTransaction = jest.spyOn(db.sequelize, 'transaction');
+
+        let response = await supertest(app).patch(`/api/ticket/close/${created_tk.id}`);
+        console.log(response.body);
+        
+        expect(db.sequelize.transaction).toHaveBeenCalledTimes(1);
+        expect(response.status).toBe(500);
+        //expect(designate.default).toHaveBeenCalledTimes(2);
+
+        let confirm_tk = await supertest(app).get(`/api/ticket/${created_tk.id}`);
+        expect(confirm_tk.body).toEqual(expect.objectContaining({"cur_status": "assigned"}));
+        
+        let confirm_ag = await supertest(app).get(`/api/agent/4`);
+        expect(confirm_ag.body).toEqual(expect.objectContaining({"occupied_slots": 0}));
     });
 })

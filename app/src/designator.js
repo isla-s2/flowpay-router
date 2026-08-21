@@ -25,7 +25,6 @@ export default async() => {
                         if (ticket.length < 1  || agent === undefined){
                             console.log('Ticket não encontrado!');
                         }else{
-                            run = true;
 
                             try{
                                 /* console.log("------------------");
@@ -48,6 +47,7 @@ export default async() => {
 
                                     return [ticket[0], agent];
                                 });
+                                run = true;
                                 res.push([ticket[0], agent]);
                             }catch (err) {console.log(err || "Algum erro ocorreu ao atualizar os dados.")}
                         }

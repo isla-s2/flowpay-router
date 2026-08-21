@@ -6,23 +6,21 @@ on:
       - main
 
 jobs:
-  test:
+  compose:
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ./app
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+      # Check out the repository
+      - uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      # Run Docker Compose Action
+      - uses: adambirds/docker-compose-action@v1.5.0
         with:
-          node-version: '26'
-
-      - name: Install dependencies
-        run: npm install --legacy-peer-deps
-
-      - name: Run Jest tests
-        run: npm test
+          compose-file: "../docker-compose.yml"
+          # up-flags: "--build"
+          down-flags: "--volumes"
+          test-container: "app"
+          test-command: "npm test"

@@ -113,7 +113,7 @@ export let close = async (req, res) => {
       }
     }else{
       res.status(400).send({
-          message: "Ticket já fechado!"
+          message: ticket.cur_status == "closed"?"Ticket já fechado!":"Ticket não pode ser fechado!"
         });
     }
   }catch (err) {
