@@ -24,6 +24,7 @@ jobs:
           down-flags: "--volumes"
           test-container: "app"
           test-command: "npm test"
+          annotate: false
         env:
           MYSQLDB_USER: "root"
           MYSQLDB_ROOT_PASSWORD: "123456"
