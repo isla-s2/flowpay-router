@@ -37,7 +37,7 @@ describe("Criação de Tickets", () => {
         console.log(response.body);
         
         expect(Ticket.create).toHaveBeenCalledTimes(1);
-        expect(response.status).toBe(400);
+        expect(response.status).toBe(201);
         expect(response.body).toEqual(expect.objectContaining({"message": "Sucesso!"}));
         //expect(designate.default).toHaveBeenCalledTimes(2);
 
