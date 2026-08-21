@@ -92,7 +92,9 @@ describe("Criação de tickets", () => {
         [null, "Cartões"],
         [67890, null],
         [24680, ""],
-    ])("retorna erro 400 e não cria o ticket caso algum campo esteja vazio", async (ticket_ref, subject)=>{
+        ["abcde", "Cartões"],
+        [12345, 67890],
+    ])("retorna erro 400 e não cria o ticket caso algum campo esteja incorreto", async (ticket_ref, subject)=>{
         const req = {
             body: {
                 ticket_ref: ticket_ref,
@@ -116,7 +118,7 @@ describe("Criação de tickets", () => {
         
         expect(res.status).toHaveBeenCalledWith(400);
         expect(res.send).toHaveBeenCalledWith(expect.objectContaining({
-            message: "Conteúdo não pode estar vazio!"
+            message: "Conteúdo preenchido incorretamente"
         }));
     });
 

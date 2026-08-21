@@ -6,23 +6,32 @@ on:
       - main
 
 jobs:
-  test:
+  compose:
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ./app
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+      # Check out the repository
+      - uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      # Run Docker Compose Action
+      - uses: adambirds/docker-compose-action@v1.5.0
         with:
-          node-version: '26'
+          compose-file: "./docker-compose.ci.yml"
+          # up-flags: "--build"
+          down-flags: "--volumes"
+          test-container: "app"
+          test-command: "npm test"
+          annotate: false
+        env:
+          MYSQLDB_USER: "root"
+          MYSQLDB_ROOT_PASSWORD: "123456"
+          MYSQLDB_DATABASE: "flowpay_router_db"
+          MYSQLDB_LOCAL_PORT: "3306"
+          MYSQLDB_LOCAL_TEST_PORT: "3307"
+          MYSQLDB_DOCKER_PORT: "3306"
 
-      - name: Install dependencies
-        run: npm install --legacy-peer-deps
-
-      - name: Run Jest tests
-        run: npm test
+          NODE_LOCAL_PORT: "3000"
+          NODE_DOCKER_PORT: "3000"

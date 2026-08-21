@@ -6,10 +6,11 @@ const Op = db.Sequelize.Op;
 import designate from './designator.js';
 
 //cria um ticket
-export let create = (req, res) => {
-    designate();
-    if (!req.body.ticket_ref || !req.body.subject) {
-        res.status(400).send({message: "Conteúdo não pode estar vazio!"});
+export let create = async (req, res) => {
+    await designate();
+    //console.log("----------");
+    if (!req.body.ticket_ref || typeof req.body.ticket_ref != 'number' || !req.body.subject || typeof req.body.subject != 'string') {
+        res.status(400).send({message: "Conteúdo preenchido incorretamente"});
         return;
     }
 
@@ -22,42 +23,42 @@ export let create = (req, res) => {
         team_assigned = 3;
         break;
     }
-    
-    return Ticket.findAndCountAll({
-      where: {
-        team_id: team_assigned,
-        cur_status: 'in queue',
-      }
-    }).then(found => {
-      //console.log(found.count);
-      let status_assigned = 'rejected';
-      let res_message = 'Erro';
-      let res_status = '500';
-      if (found.count <3) {
-        status_assigned = 'in queue';
-        res_message = 'Sucesso!';
-        res_status = 201;
-      }else{
-        res_message = 'Tente novamente mais tarde!';
-        res_status = 503;
-      }
-
-      const ticket = {
-          ticket_ref: req.body.ticket_ref,
-          subject: req.body.subject,
+    try{
+      let found = await Ticket.findAndCountAll({
+        where: {
           team_id: team_assigned,
-          cur_status: status_assigned
-      }
+          cur_status: 'in queue',
+        }
+      })
+        //console.log(found.count);
+        let status_assigned = 'rejected';
+        let res_message = 'Erro';
+        let res_status = 500;
+        if (found.count <3) {
+          status_assigned = 'in queue';
+          res_message = 'Sucesso!';
+          res_status = 201;
+        }else{
+          res_message = 'Tente novamente mais tarde!';
+          res_status = 503;
+        }
 
-      Ticket.create(ticket)
-          .then(data => {
-            res.status(res_status).send({data: data, message: res_message})
-            designate();
-          })
-          .catch(err => {res.status(500).send({message: err || "Algum erro ocorreu na criação do ticket."})});
+        const ticket = {
+            ticket_ref: req.body.ticket_ref,
+            subject: req.body.subject,
+            team_id: team_assigned,
+            cur_status: status_assigned
+        }
+        //console.log(ticket);
 
-    })
-    .catch(err => {res.status(500).send({message: err || "Algum erro ocorreu na verificação de dados."})});
+        await Ticket.create(ticket)
+            .then(data => {
+              res.status(res_status).send({data: data, message: res_message});
+              designate();
+            })
+            .catch(err => {res.status(500).send({message:  err ||  "Algum erro ocorreu na criação do ticket."})});
+    }
+    catch(err) {res.status(500).send({message: err || "Algum erro ocorreu na verificação de dados."})};
 };
 
 //encerra o atendimento
@@ -107,12 +108,12 @@ export let close = async (req, res) => {
           }
       }catch (err) {
         res.status(500).send({
-          message: "Erro tentando encontrar atendente com id=" + ticket.id
+          message: "Erro tentando encontrar atendente com id=" + ticket.agent_id
         });
       }
     }else{
       res.status(400).send({
-          message: "Ticket já fechado!"
+          message: ticket.cur_status == "closed"?"Ticket já fechado!":"Ticket não pode ser fechado!"
         });
     }
   }catch (err) {
