@@ -39,7 +39,7 @@ describe("Criação de Tickets", () => {
         expect(Ticket.create).toHaveBeenCalledTimes(1);
         expect(response.status).toBe(201);
         expect(response.body).toEqual(expect.objectContaining({"message": "Sucesso!"}));
-        //expect(designate.default).toHaveBeenCalledTimes(2);
+        expect(designate.default).toHaveBeenCalledTimes(2);
 
         let confirm = await supertest(app).get(`/api/ticket/${response.body.data.id}`);
         console.log(confirm.body);
@@ -49,6 +49,7 @@ describe("Criação de Tickets", () => {
     });
 
     it("Retorna 400 e não cria ticket em caso de erro no body", async () => {
+        jest.spyOn(designate, 'default');
         let spyCreate = jest.spyOn(Ticket, 'create');
 
         let response = await supertest(app).post('/api/ticket/create').send({"ticket_ref": "abcde", "subject": "outros"});
@@ -56,11 +57,12 @@ describe("Criação de Tickets", () => {
 
         expect(response.status).toBe(400);
         expect(Ticket.create).toHaveBeenCalledTimes(0);
-        //expect(designate.default).toHaveBeenCalledTimes(2);
+        expect(designate.default).toHaveBeenCalledTimes(1);
     });
 
     it("Retorna 500 e não cria ticket em caso de erro ao procurar tickets", async () => {
         let spyCreate = jest.spyOn(Ticket, 'create');
+        jest.spyOn(designate, 'default');
         
         let spyFind = jest.spyOn(Ticket, 'findAndCountAll').mockRejectedValue("Algum erro ocorreu na verificação de dados.");
 
@@ -70,20 +72,21 @@ describe("Criação de Tickets", () => {
 
         expect(response.status).toBe(500);
         expect(Ticket.create).toHaveBeenCalledTimes(0);
-        //expect(designate.default).toHaveBeenCalledTimes(2);
+        expect(designate.default).toHaveBeenCalledTimes(1);
     });
 
     it("Retorna 500 em caso de erro ao criar ticket", async () => {
         let spyCreate = jest.spyOn(Ticket, 'create').mockImplementation(() => {
             throw new Error();
         });
+        jest.spyOn(designate, 'default');
 
         let response = await supertest(app).post('/api/ticket/create').send({"ticket_ref": 12345, "subject": "outros"});
         console.log(response.body);
 
         expect(response.status).toBe(500);
         expect(Ticket.create).not.toHaveReturned();
-        //expect(designate.default).toHaveBeenCalledTimes(2);
+        expect(designate.default).toHaveBeenCalledTimes(1);
     });
 
     it("Retorna 503 e rejeita o ticket caso a fila esteja cheia", async () => {
@@ -91,13 +94,14 @@ describe("Criação de Tickets", () => {
             count: 3
         });
         let spyCreate = jest.spyOn(Ticket, 'create');
+        jest.spyOn(designate, 'default');
 
         let response = await supertest(app).post('/api/ticket/create').send({"ticket_ref": 24680, "subject": "outros"});
         console.log(response.body);
 
         expect(response.status).toBe(503);
         expect(Ticket.create).toHaveBeenCalledTimes(1);
-        //expect(designate.default).toHaveBeenCalledTimes(2);
+        expect(designate.default).toHaveBeenCalledTimes(2);
 
         let confirm = await supertest(app).get(`/api/ticket/${response.body.data.id}`);
         expect(confirm.status).toBe(200);
@@ -217,6 +221,7 @@ describe("Fechamento de Tickets", () => {
     });
 
     it("Fecha o ticket e atualiza o atendente designado", async () => {
+        jest.spyOn(designate, 'default');
         let ticket = {
             ticket_ref: 201,
             subject: "Cartões",
@@ -232,7 +237,7 @@ describe("Fechamento de Tickets", () => {
         
         expect(response.status).toBe(200);
         expect(response.body).toEqual(expect.objectContaining({"message": "Atendimento fechado!"}));
-        //expect(designate.default).toHaveBeenCalledTimes(2);
+        expect(designate.default).toHaveBeenCalledTimes(1);
 
         let confirm = await supertest(app).get(`/api/ticket/${response.body.data.id}`);
         console.log(confirm.body);
@@ -243,6 +248,7 @@ describe("Fechamento de Tickets", () => {
     });
 
     it("Retorna 400 ao tentar fechar ticket já fechado, e não atualza o atendente", async () => {
+        jest.spyOn(designate, 'default');
         let ticket = {
             ticket_ref: 201,
             subject: "Cartões",
@@ -258,22 +264,24 @@ describe("Fechamento de Tickets", () => {
         
         expect(response.status).toBe(400);
         expect(response.body).toEqual(expect.objectContaining({"message": "Ticket já fechado!"}));
-        //expect(designate.default).toHaveBeenCalledTimes(2);
+        expect(designate.default).toHaveBeenCalledTimes(0);
 
         let confirm_ag = await supertest(app).get(`/api/agent/4`);
         expect(confirm_ag.body).toEqual(expect.objectContaining({"occupied_slots": 1}));
     });
 
     it("Retorna 500 em caso de erro ao procurar ticket", async () => {
+        jest.spyOn(designate, 'default');
         let response = await supertest(app).patch(`/api/ticket/close/123`);
         console.log(response.body);
 
         expect(response.status).toBe(500);
         expect(response.body).toEqual(expect.objectContaining({"message": "Erro tentando encontrar ticket com id=123"}));
-        //expect(designate.default).toHaveBeenCalledTimes(2);
+        expect(designate.default).toHaveBeenCalledTimes(0);
     });
 
     it("Retorna 500 em caso de erro ao procurar atendente", async () => {
+        jest.spyOn(designate, 'default');
         let ticket = {
             ticket_ref: 201,
             subject: "Cartões",
@@ -292,10 +300,11 @@ describe("Fechamento de Tickets", () => {
 
         expect(response.status).toBe(500);
         expect(response.body).toEqual(expect.objectContaining({"message": "Erro tentando encontrar atendente com id=4"}));
-        //expect(designate.default).toHaveBeenCalledTimes(2);
+        expect(designate.default).toHaveBeenCalledTimes(0);
     });
 
     it("Retorna 500 em caso de erro ao atualizar dados", async () => {
+        jest.spyOn(designate, 'default');
         let ticket = {
             ticket_ref: 201,
             subject: "Cartões",
@@ -313,10 +322,11 @@ describe("Fechamento de Tickets", () => {
         
         expect(response.status).toBe(500);
         expect(response.body).toEqual({"message": "Algum erro ocorreu ao atualizar os dados."});
-        //expect(designate.default).toHaveBeenCalledTimes(2);
+        expect(designate.default).toHaveBeenCalledTimes(0);
     });
 
     it("Transaction não atualiza nada em caso de erro em uma das partes", async () => {
+        jest.spyOn(designate, 'default');
         let ticket = {
             ticket_ref: 201,
             subject: "Cartões",
@@ -334,7 +344,7 @@ describe("Fechamento de Tickets", () => {
         
         expect(db.sequelize.transaction).toHaveBeenCalledTimes(1);
         expect(response.status).toBe(500);
-        //expect(designate.default).toHaveBeenCalledTimes(2);
+        expect(designate.default).toHaveBeenCalledTimes(0);
 
         let confirm_tk = await supertest(app).get(`/api/ticket/${created_tk.id}`);
         expect(confirm_tk.body).toEqual(expect.objectContaining({"cur_status": "assigned"}));
@@ -342,4 +352,4 @@ describe("Fechamento de Tickets", () => {
         let confirm_ag = await supertest(app).get(`/api/agent/4`);
         expect(confirm_ag.body).toEqual(expect.objectContaining({"occupied_slots": 0}));
     });
-})
+});
